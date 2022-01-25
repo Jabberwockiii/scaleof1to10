@@ -10,10 +10,11 @@ import { client, urlFor } from '../client';
 const Pin = ({ pin }) => {
   const [postHovered, setPostHovered] = useState(false);
   const [savingPost, setSavingPost] = useState(false);
-
+  const [likingPost, setLikingPost] = useState(false);
+  
   const navigate = useNavigate();
 
-  const { postedBy, image, _id, destination } = pin;
+  const { postedBy, image, _id, destination, likeCount } = pin;
 
   const user = localStorage.getItem('user') !== 'undefined' ? JSON.parse(localStorage.getItem('user')) : localStorage.clear();
 
@@ -51,6 +52,34 @@ const Pin = ({ pin }) => {
         });
     }
   };
+    {/*Like function */}
+  let alreadyLiked = pin?.like?.filter((item) => item?.postedBy?._id === user?.googleId);
+
+  alreadyLiked = alreadyLiked?.length > 0 ? alreadyLiked : [];
+
+  const likePin = (id) => {
+    if (alreadyLiked?.length === 0) {
+      setLikingPost(true);
+      client
+        .patch(id)
+        .setIfMissing({ likeList: [] })
+          .insert('after', 'likeList[-1]', [{
+            _key: uuidv4(),
+            userId: user?.googleId,
+            likedBy: {
+              _type: 'likedBy',
+              _ref: user?.googleId,
+            },
+          }])
+          .commit()
+          .then(() => {
+            window.location.reload();
+            setLikingPost(false);
+        });
+      }
+    {/*Like function */}
+
+  }
 
   return (
     <div className="m-2">
@@ -78,7 +107,8 @@ const Pin = ({ pin }) => {
                 ><MdDownloadForOffline />
                 </a>
               </div>
-              {alreadySaved?.length !== 0 ? (
+
+              {/* {alreadySaved?.length !== 0 ? (
                 <button type="button" className="bg-red-500 opacity-70 hover:opacity-100 text-white font-bold px-5 py-1 text-base rounded-3xl hover:shadow-md outline-none">
                   {pin?.save?.length}  Saved
                 </button>
@@ -89,11 +119,49 @@ const Pin = ({ pin }) => {
                     savePin(_id);
                   }}
                   type="button"
-                  className="bg-red-500 opacity-70 hover:opacity-100 text-white font-bold px-5 py-1 text-base rounded-3xl hover:shadow-md outline-none"
+                  className="bg-blue-500 opacity-70 hover:opacity-100 text-white font-bold px-5 py-1 text-base rounded-3xl hover:shadow-md outline-none"
                 >
                   {pin?.save?.length}   {savingPost ? 'Saving' : 'Save'}
                 </button>
+              )} */}
+
+              {/*start of the like button*/}
+              {alreadySaved?.length !== 0 ? (
+                <button type="button" className="bg-red-500 opacity-70 hover:opacity-100 text-white font-bold px-5 py-1 text-base rounded-3xl hover:shadow-md outline-none">
+                  {pin?.save?.length}  Like
+                </button>
+              ) : (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    savePin(_id);
+                  }}
+                  type="button"
+                  className="bg-blue-500 opacity-70 hover:opacity-100 text-white font-bold px-5 py-1 text-base rounded-3xl hover:shadow-md outline-none"
+                >
+                  {pin?.save?.length}   {savingPost ? 'Liking' : 'Likes'}
+                </button>
               )}
+              {/*end of the like button*/}
+              
+              {/*start of the like button*/}
+              {alreadySaved?.length !== 0 ? (
+                <button type="button" className="bg-red-500 opacity-70 hover:opacity-100 text-white font-bold px-5 py-1 text-base rounded-3xl hover:shadow-md outline-none">
+                  {pin?.save?.length}  Like
+                </button>
+              ) : (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    savePin(_id);
+                  }}
+                  type="button"
+                  className="bg-blue-500 opacity-70 hover:opacity-100 text-white font-bold px-5 py-1 text-base rounded-3xl hover:shadow-md outline-none"
+                >
+                  {pin?.save?.length}   {savingPost ? 'Liking' : 'Likes'}
+                </button>
+              )}
+              {/*end of the like button*/}
             </div>
             <div className=" flex justify-between items-center gap-2 w-full">
               {destination?.slice(8).length > 0 ? (
